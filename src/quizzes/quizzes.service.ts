@@ -50,11 +50,10 @@ export class QuizzesService {
             return quizzes
         }
 
-        throw new BadRequestException('Bad Request')
-        // const quizzes = await this.quizzesModel.find({ ...keyword }).populate('user', 'fullname')
-
-        // this.logger.log(`get all quizzes: userId[${userId}] query[${JSON.stringify(query)}] response[${JSON.stringify(quizzes)}]`)
-        // return quizzes
+        const quizzes = await this.quizzesModel.find({ ...keyword }).populate('user', 'fullname')
+        const finalQuizzes = getQuizzesWithOutCorrectAnswer(quizzes)
+        this.logger.log(`get all quizzes: userId[${userId}] query[${JSON.stringify(query)}] response[${JSON.stringify(finalQuizzes)}]`)
+        return finalQuizzes
     }
 
     // get edit one quiz ( By Id )
