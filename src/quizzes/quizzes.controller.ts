@@ -13,7 +13,7 @@ import { Response } from 'express';
 import { CompletedQuizzes } from './schemas/completed.quizzes.schema';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UpdateAnswersDto } from './dto/update.answer.dto';
-import { QueryQuizIdDto } from './dto/global.dto';
+import { QueryGetAllQuizDto, QueryGetDeployedQuizDto, QueryQuizIdDto } from './dto/global.dto';
 
 
 @ApiTags('Quizzes')
@@ -27,6 +27,9 @@ export class QuizzesController {
     @ApiCreatedResponse({
         description: 'Get all quizzes',
         type: [Quizzes]
+    })
+    @ApiQuery({
+        type: QueryGetAllQuizDto,
     })
     async getQuizzes(
         @Query()
@@ -66,6 +69,10 @@ export class QuizzesController {
         description: 'Get completed quizzes',
         type: [CompletedQuizzes]
     })
+    @ApiBody({
+        type: QueryQuizIdDto,
+        description: "Id of completed quiz"
+    })
     async getCompletedQuizzes(
         @Query()
         query: ExpressQuery,
@@ -81,6 +88,9 @@ export class QuizzesController {
     @ApiCreatedResponse({
         description: 'Get all deployed quizzes',
         type: [DeployedQuizzes]
+    })
+    @ApiBody({
+        type: QueryGetDeployedQuizDto,
     })
     async getDeployedQuizzes(
         @Query()
@@ -159,6 +169,9 @@ export class QuizzesController {
         description: 'Update answer',
         type: RunningQuizzes
     })
+    @ApiBody({
+        type: UpdateAnswersDto
+    })
     async updateAnswer(
         @Req()
         req,
@@ -200,7 +213,7 @@ export class QuizzesController {
             properties: {
                 quizId: {
                     type: 'string',
-                    description: 'Quiz id',
+                    description: 'Id of owned quiz that will be deployed',
                     example: '60f0b0b0e3b3c3b3b0b3b0b3'
                 },
             }

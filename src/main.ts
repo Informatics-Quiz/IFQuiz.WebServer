@@ -10,7 +10,6 @@ async function bootstrap() {
 		.setTitle('Informatics Quiz')
 		.setDescription('The quiz api documentation')
 		.setVersion('1.0')
-		.addTag('quiz')
 		.addBearerAuth()
 		.build();
 	const document = SwaggerModule.createDocument(app, config)
