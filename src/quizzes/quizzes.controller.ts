@@ -11,8 +11,9 @@ import { query } from 'express';
 import { RunningQuizzes } from './schemas/running.quizzes.schema';
 import { Response } from 'express';
 import { CompletedQuizzes } from './schemas/completed.quizzes.schema';
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UpdateAnswersDto } from './dto/update.answer.dto';
+import { QueryQuizIdDto } from './dto/global.dto';
 
 
 @ApiTags('Quizzes')
@@ -42,6 +43,10 @@ export class QuizzesController {
     @ApiCreatedResponse({
         description: 'Take quiz',
         type: RunningQuizzes
+    })
+    @ApiQuery({
+        type: QueryQuizIdDto,
+        description: "Id of deployed quiz"
     })
     async takeQuiz(
         @Query()

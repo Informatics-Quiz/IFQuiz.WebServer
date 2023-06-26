@@ -18,6 +18,9 @@ export class AuthController {
         description: 'Sign up',
         type: TokenDto
     })
+    @ApiBody({
+        type: SignUpDto
+    })
     signUp(
         @Body() signUpDto: SignUpDto
     ): Promise<TokenDto> {
@@ -28,6 +31,9 @@ export class AuthController {
     @ApiCreatedResponse({
         description: 'Login',
         type: TokenDto
+    })
+    @ApiBody({
+        type: LoginDto
     })
     login(
         @Body() loginDto: LoginDto
