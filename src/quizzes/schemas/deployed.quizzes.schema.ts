@@ -89,6 +89,13 @@ export class DeployedQuizzes {
     @Prop({required: true})
     expiredAt: Date
 
+    @ApiProperty({
+        description: 'Deploy at',
+        type: Date,
+        example: '2021-06-05T15:00:00.000Z'
+    })
+    @Prop({required: true})
+    deployAt: Date
 }
 
 export const DeployedQuizzesSchema = SchemaFactory.createForClass(DeployedQuizzes)

@@ -17,3 +17,10 @@ export function getDateWithDuration(duration: Duration, addDiffMinutes?: number)
 
    return new Date(Date.now() + durationMilliseconds)
 }
+
+export function addDeployDateDuration(deployAt: Date, duration: Duration, addDiffMinutes?: number): Date {
+   const deployDate = new Date(deployAt);
+   const durationMilliseconds = ((duration.hours * 60 * 60 * 1000) + (duration.minutes * 60 * 1000)) + ((addDiffMinutes || 0) * 60 * 1000);
+   const expirationDate = new Date(deployDate.getTime() + durationMilliseconds);
+   return expirationDate;
+}

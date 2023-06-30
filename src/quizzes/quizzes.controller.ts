@@ -14,6 +14,7 @@ import { CompletedQuizzes } from './schemas/completed.quizzes.schema';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UpdateAnswersDto } from './dto/update.answer.dto';
 import { QueryGetAllQuizDto, QueryGetDeployedQuizDto, QueryQuizIdDto } from './dto/global.dto';
+import { DeployDataDto } from './dto/deploy.data';
 
 
 @ApiTags('Quizzes')
@@ -208,25 +209,15 @@ export class QuizzesController {
         type: DeployedQuizzes
     })
     @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                quizId: {
-                    type: 'string',
-                    description: 'Id of owned quiz that will be deployed',
-                    example: '60f0b0b0e3b3c3b3b0b3b0b3'
-                },
-            }
-        }
+        type: DeployDataDto
     })
     async deployQuiz(
         @Body()
-        body,
+        deployData: DeployDataDto,
         @Req()
         req
     ): Promise<DeployedQuizzes> {
-        const { quizId } = body
-        return this.quizzesService.deploy(quizId, req.user._id)
+        return this.quizzesService.deploy(deployData, req.user._id)
     }
 
     @ApiCreatedResponse({

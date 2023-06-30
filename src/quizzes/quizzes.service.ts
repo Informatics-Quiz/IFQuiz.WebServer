@@ -11,10 +11,11 @@ import { generateQuizCode } from '../utils/functions/quiz-code-generator.utils'
 
 import { getQuizzesWithOutCorrectAnswer, getQuizWithOutCorrectAnswer, initialTakeQuizAnswer, getTakeQuizWithOutAnswer, getRunningQuizzesWithOutCorrectAnswer, getCompletedQuizzesWithOutCorrectAnswer } from 'src/utils/functions/quiz-remove-correct-answer.utils';
 import { RunningQuizzes } from './schemas/running.quizzes.schema';
-import { getDateWithDuration, isExpired } from 'src/utils/functions/date.utils';
+import { addDeployDateDuration, getDateWithDuration, isExpired } from 'src/utils/functions/date.utils';
 import { Response } from 'express';
 import { checkQuizCompleted, checkQuizzesCompleted } from 'src/utils/functions/initial.completed.quiz.utils';
 import { CompletedQuizzes } from './schemas/completed.quizzes.schema';
+import { DeployDataDto } from './dto/deploy.data';
 
 @Injectable()
 export class QuizzesService {
@@ -31,7 +32,7 @@ export class QuizzesService {
 
     private readonly logger = new Logger(QuizzesService.name) // logger
 
-    
+
     // get all quizzes
     async getAll(query: Query, userId: string): Promise<Quizzes[]> {
         this.logger.log(`get all quizzes: userId[${userId}] query[${JSON.stringify(query)}]`)
@@ -89,9 +90,10 @@ export class QuizzesService {
 
         const currentTimestamp = new Date();
         const quizzes = await this.deployedQuizzesModel
-            .find({ expiredAt: { $gte: currentTimestamp } })
+            .find({ deployAt: { $lte: currentTimestamp } })
             .populate('user', 'fullname')
             .exec();
+
 
         const finalQuizzes = getQuizzesWithOutCorrectAnswer(quizzes)
 
@@ -100,7 +102,7 @@ export class QuizzesService {
     }
 
 
-    async submitQuiz(userId: string, quizId: string, res: Response): Promise<CompletedQuizzes | Response>{
+    async submitQuiz(userId: string, quizId: string, res: Response): Promise<CompletedQuizzes | Response> {
         this.logger.log(`submit quiz: userId[${userId}] quizId[${quizId}]`)
         if (!mongoose.isValidObjectId(userId)) {
             this.logger.error(`submit quiz: userId[${userId}] quizId[${quizId}] response[Bad Request]`)
@@ -117,7 +119,7 @@ export class QuizzesService {
             expiredAt: { $lte: currentTimestamp }
         }).populate('copyof').populate('user')
 
-        if(!runningQuiz){
+        if (!runningQuiz) {
             this.logger.error(`submit quiz: userId[${userId}] quizId[${quizId}] response[Not Found]`)
             throw new NotFoundException('Quiz not found')
         }
@@ -138,7 +140,7 @@ export class QuizzesService {
     }
 
 
-    async getCompletedQuiz(userId:string, quizId: string){
+    async getCompletedQuiz(userId: string, quizId: string) {
         this.logger.log(`get completed quiz: userId[${userId}] quizId[${quizId}]`)
         const completedQuiz = await this.completedQuizzesModel.find({ user: userId, _id: quizId }).populate('copyof').populate({
             path: 'copyof',
@@ -146,13 +148,13 @@ export class QuizzesService {
                 path: 'user'
             }
         }) as any
-        
+
         const finalQuiz = getCompletedQuizzesWithOutCorrectAnswer(completedQuiz)
         this.logger.log(`get completed quiz: userId[${userId}] quizId[${quizId}] response[${JSON.stringify(finalQuiz)}]`)
         return finalQuiz
     }
 
-    async getCompletedQuizzes(userId: string, query: Query){
+    async getCompletedQuizzes(userId: string, query: Query) {
         this.logger.log(`get completed quizzes: userId[${userId}] query[${JSON.stringify(query)}]`)
         if (!mongoose.isValidObjectId(userId)) {
             this.logger.error(`get completed quizzes: userId[${userId}] query[${JSON.stringify(query)}] response[Bad Request]`)
@@ -160,7 +162,7 @@ export class QuizzesService {
         }
         const { quizId } = query
 
-        if(quizId)return this.getCompletedQuiz(userId, quizId as string)
+        if (quizId) return this.getCompletedQuiz(userId, quizId as string)
 
         const currentTimestamp = new Date();
         const runningQuizzes = await this.runningQuizzesModel.find({
@@ -171,7 +173,7 @@ export class QuizzesService {
         if (runningQuizzes.length > 0) {
             const checkedRunningQuizzes = checkQuizzesCompleted(runningQuizzes);
             await this.completedQuizzesModel.insertMany(checkedRunningQuizzes);
-            
+
             // // Extract the IDs of the runningQuizzes to be deleted
             const runningQuizIds = runningQuizzes.map((quiz) => quiz._id);
             // // Delete the runningQuizzes documents
@@ -234,11 +236,11 @@ export class QuizzesService {
             return res.status(HttpStatus.OK).json({ message: 'bad reqeust null' })
         }
 
-        if (!mongoose.isValidObjectId(quizId)){
+        if (!mongoose.isValidObjectId(quizId)) {
             this.logger.error(`update answer: userId[${userId}] body[${JSON.stringify(body)}] response[Bad Request]`)
             return res.status(HttpStatus.OK).json({ message: 'bad reqeust quizId' })
         }
-        if (!mongoose.isValidObjectId(userId)){
+        if (!mongoose.isValidObjectId(userId)) {
             this.logger.error(`update answer: userId[${userId}] body[${JSON.stringify(body)}] response[Bad Request]`)
             return res.status(HttpStatus.OK).json({ message: 'bad reqeust userId' })
         }
@@ -264,7 +266,7 @@ export class QuizzesService {
         }
 
         this.logger.error(`update answer: userId[${userId}] body[${JSON.stringify(body)}] response[Not Found]`)
-        return res.status(200).json({message: 'not found quiz'})
+        return res.status(200).json({ message: 'not found quiz' })
     }
 
     async takeQuiz(userId: string, res: Response, query: Query) {
@@ -275,7 +277,7 @@ export class QuizzesService {
             throw new BadRequestException('What you doing? this is not a quiz.')
         }
 
-        if (!mongoose.isValidObjectId(quizId)){
+        if (!mongoose.isValidObjectId(quizId)) {
             this.logger.error(`take quiz: userId[${userId}] query[${JSON.stringify(query)}] response[Bad Request]`)
             throw new BadRequestException('What you doing? this is not a quiz.')
         }
@@ -307,7 +309,10 @@ export class QuizzesService {
 
         const currentTimestamp = new Date();
         const deployedQuiz = await this.deployedQuizzesModel.findOne({
-            _id: quizId, expiredAt: {
+            _id: quizId, deployAt: {
+                $lte: currentTimestamp
+            },
+            expiredAt: {
                 $gte: currentTimestamp
             }
         }).populate('user', '_id')
@@ -317,7 +322,7 @@ export class QuizzesService {
             throw new NotFoundException('Quiz not found or expired.')
         }
 
-        
+
         const expiredAt = getDateWithDuration(deployedQuiz.duration, 0)
 
         const data = {
@@ -339,23 +344,30 @@ export class QuizzesService {
 
 
     // deploy quiz ( By Id )
-    async deploy(id: string, userId: string): Promise<DeployedQuizzes> {
-        this.logger.log(`deploy quiz: id[${id}] userId[${userId}]`)
-        if (!mongoose.isValidObjectId(id)) {
-            this.logger.error(`deploy quiz: id[${id}] userId[${userId}] response[Bad Request]`)
+    async deploy(deployData: DeployDataDto, userId: string): Promise<DeployedQuizzes> {
+        const { quizId, deployAt } = deployData
+        /** Example Data request */
+        // {
+        //     "quizId": "649d8893a4e0f0dfcb684f7d",
+        //     "deployAt": "2023-06-30T16:45:00.000Z"
+        // }
+        this.logger.log(`[ DEPLOY QUIZ ] userId: ${userId} id: ${quizId} deployAt: ${deployAt}`)
+        if (!mongoose.isValidObjectId(quizId) || !mongoose.isValidObjectId(userId)) {
+            this.logger.error(`[ DEPLOY QUIZ ]  userId: ${userId} id: ${quizId} response: bad request`)
             throw new BadRequestException('Invalid quiz id.')
         }
 
         const quiz = await this.quizzesModel.findOne({
-            _id: id,
+            _id: quizId,
             user: userId
         })
         if (!quiz) {
-            this.logger.error(`deploy quiz: id[${id}] userId[${userId}] response[Not Found]`)
+            this.logger.error(`[ DEPLOY QUIZ ]  userId: ${userId} id: ${quizId} response: not found`)
             throw new NotFoundException('Quiz not found or not owned.')
         }
 
-        const expiredAt = getDateWithDuration(quiz.duration, 0)
+
+        const expiredAt = addDeployDateDuration(deployAt, quiz.duration, 0)
         const deployedQuiz = {
             name: quiz.name,
             description: quiz.description,
@@ -366,6 +378,7 @@ export class QuizzesService {
             hideCorrectAnswer: quiz.hideCorrectAnswer,
             questions: quiz.questions,
             codeJoin: null,
+            deployAt: deployAt,
             expiredAt: expiredAt
         }
 
@@ -374,30 +387,30 @@ export class QuizzesService {
         } while (await this.deployedQuizzesModel.findOne({ codeJoin: deployedQuiz.codeJoin }))
 
         const newDeployedQuiz = await this.deployedQuizzesModel.create(deployedQuiz)
+        this.logger.log(`[ DEPLOY QUIZ ]  userId: ${userId} id: ${quizId} response: ${JSON.stringify(newDeployedQuiz)}`)
 
-        this.logger.log(`deploy quiz: id[${id}] userId[${userId}] response[${JSON.stringify(newDeployedQuiz)}]`)
         return newDeployedQuiz
     }
 
     // get running user quiz
     async getRunningQuizzes(userId: string): Promise<RunningQuizzes[]> {
         this.logger.log(`get running quizzes: userId[${userId}]`)
-        if(!mongoose.isValidObjectId(userId)) {
+        if (!mongoose.isValidObjectId(userId)) {
             this.logger.error(`get running quizzes: userId[${userId}] response[Bad Request]`)
             throw new BadRequestException('Server error can\'t find user.')
         }
-        
+
         const currentTimestamp = new Date();
         const runningQuizzes = await this.runningQuizzesModel.find({
             user: userId,
-            expiredAt: { $gte: currentTimestamp}
+            expiredAt: { $gte: currentTimestamp }
         }).populate('copyof')
-        .populate({
-            path: 'copyof',
-            populate: {
-                path: 'user'
-            }
-        })
+            .populate({
+                path: 'copyof',
+                populate: {
+                    path: 'user'
+                }
+            })
 
         this.logger.log(`get running quizzes: userId[${userId}] response[${JSON.stringify(runningQuizzes)}]`)
         const finalQuizzes = getRunningQuizzesWithOutCorrectAnswer(runningQuizzes)
@@ -437,7 +450,7 @@ export class QuizzesService {
         }
 
         this.logger.log(`delete quiz: id[${id}] userId[${userId}] response[OK]`)
-        return res.status(HttpStatus.OK).json({ message: 'Quiz deleted.'})
+        return res.status(HttpStatus.OK).json({ message: 'Quiz deleted.' })
     }
 
     // update quiz ( By Id )
