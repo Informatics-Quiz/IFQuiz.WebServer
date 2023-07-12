@@ -88,6 +88,7 @@ export class DeployedQuizzes {
     @Prop({required: true, default: 0})
     participants: number
 
+
     @ApiProperty({
         description: 'Expired at',
         type: Date,

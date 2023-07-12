@@ -16,8 +16,9 @@ import { Response } from 'express';
 import { checkQuizCompleted, checkQuizzesCompleted } from 'src/utils/functions/initial.completed.quiz.utils';
 import { CompletedQuizzes } from './schemas/completed.quizzes.schema';
 import { DeployDataDto } from './dto/deploy.data';
-import { SummarizedQuiz } from './schemas/summarized.quiz.schemas';
+import { SummarizedQuiz, SummarizedQuizSchema } from './schemas/summarized.quiz.schemas';
 import { clearConfigCache } from 'prettier';
+import { initializedStatus } from 'src/utils/functions/initial.summarized.quiz.utils';
 
 @Injectable()
 export class QuizzesService {
@@ -498,8 +499,7 @@ export class QuizzesService {
         })
 
         // get status is done or not ?
-
-
+        summarizedQuizzes = initializedStatus(summarizedQuizzes)
 
         return summarizedQuizzes.reverse()
     }
