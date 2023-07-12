@@ -132,7 +132,8 @@ export function checkQuizCompleted(quiz: RunningQuizzes) {
     checkedQuiz.correctTotal = 0;
     checkedQuiz.incorrectTotal = 0;
     checkedQuiz.taskDoneTotal = 0;
-
+    checkedQuiz.isPass = false
+    
     for (let id = 0; id < quiz.questions.length; id++) {
         const question = quiz.questions[id];
         const answers = quiz.answers[id];
@@ -149,6 +150,11 @@ export function checkQuizCompleted(quiz: RunningQuizzes) {
             checkedQuiz.incorrectTotal++;
         }
     }
+
+    if(checkedQuiz.score > quiz.copyof.points/2) {
+        checkedQuiz.isPass = true
+    }
+    
 
     return checkedQuiz;
 }
@@ -171,6 +177,7 @@ export function checkQuizzesCompleted(quizzes: RunningQuizzes[]) {
         checkedQuiz.correctTotal = 0;
         checkedQuiz.incorrectTotal = 0;
         checkedQuiz.taskDoneTotal = 0;
+        checkedQuiz.isPass = false
 
         // Calculate the score based on the question and answers
         for (let id = 0; id < quiz.questions.length; id++) {
@@ -188,6 +195,10 @@ export function checkQuizzesCompleted(quizzes: RunningQuizzes[]) {
             } else {
                 checkedQuiz.incorrectTotal++;
             }
+        }
+
+        if(checkedQuiz.score > quiz.copyof.points/2) {
+            checkedQuiz.isPass = true
         }
 
         completedQuizzes.push(checkedQuiz);

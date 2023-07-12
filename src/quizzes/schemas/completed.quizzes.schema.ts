@@ -31,6 +31,12 @@ export class CompletedQuizzes {
     @Prop({required: true, default: 0})
     taskDoneTotal: number
 
+    @ApiProperty({
+        description: "Is this user passed this quiz",
+        type: Boolean
+    })
+    @Prop({required: true, default: false})
+    isPass: boolean
 
     @ApiProperty({
         description: 'User info',
