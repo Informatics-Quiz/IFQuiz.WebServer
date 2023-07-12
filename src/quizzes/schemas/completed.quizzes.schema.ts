@@ -10,28 +10,28 @@ import { UserFillAnswers, UserMultipleAnswer, UserSingleAnswer } from "../dto/us
 @Schema({timestamps: true, collection: 'quiz_completed', versionKey: false})
 export class CompletedQuizzes {
 
-    // @TODO
-    // validate all answer of completedParticipants
-    // correct total
-    // incorrect total
-    // task done total
-    // points get total
+    @ApiProperty({
+        description: "Correct total.",
+        type: Number
+    })
+    @Prop({required: true, default: 0})
+    correctTotal: number
 
-    // @Prop({ require: true })
-    // name : string
+    @ApiProperty({
+        description: "Incorrect total.",
+        type: Number
+    })
+    @Prop({required: true, default: 0})
+    incorrectTotal: number
 
-    // @Prop({ required: true})3
-    
-    // description : string
+    @ApiProperty({
+        description: "Task done total.",
+        type: Number
+    })
+    @Prop({required: true, default: 0})
+    taskDoneTotal: number
 
-    // @Prop({ default: ''})
-    // imageUrl: string
 
-    // @Prop({ required: true})
-    // points: number
-
-    // @Prop({required: true})
-    // duration: Duration
     @ApiProperty({
         description: 'User info',
         type: String,

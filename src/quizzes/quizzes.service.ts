@@ -519,7 +519,7 @@ export class QuizzesService {
 
         let completedParticipants = await this.completedQuizzesModel.find({
             copyof: quizId
-        }).populate('user', 'fullname')
+        }).populate('user', 'fullname email')
 
 
         console.log(completedParticipants)

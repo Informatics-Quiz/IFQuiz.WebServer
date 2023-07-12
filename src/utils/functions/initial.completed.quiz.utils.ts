@@ -86,6 +86,37 @@ const checkAnswerMaps: Object = {
 }
 
 
+class SingleAnswerCheckDoneDto {
+    selectedId: number
+}
+class MultipleAnswerCheckDoneDto {
+    selectedIds: number[]
+}
+
+class MatchStringAnswerCheckDoneDto {
+    matchString: string
+}
+
+const checkTaskDoneSingleChoice = (answer: SingleAnswerCheckDoneDto) => {
+    return answer.selectedId !== null && answer !== undefined
+}
+
+const checkTaskDoneFillChoice = (answer: MatchStringAnswerCheckDoneDto) => {
+    return answer !== null && answer !== undefined
+}
+
+const checkTaskDoneMultipleChoice = (answer: MultipleAnswerCheckDoneDto) => {
+    return answer.selectedIds.length > 0
+}
+
+
+
+const taskDoneCheck: Object = {
+    'single-choice': checkTaskDoneSingleChoice,
+    'fill-choice': checkTaskDoneFillChoice,
+    'multiple-choice': checkTaskDoneMultipleChoice
+}
+
 export function checkQuizCompleted(quiz: RunningQuizzes) {
     logger.log(`checkQuizCompleted: ${JSON.stringify(quiz)}`)
 
@@ -98,11 +129,27 @@ export function checkQuizCompleted(quiz: RunningQuizzes) {
     checkedQuiz.expiredAt = new Date(quiz.expiredAt);
     checkedQuiz.answers = quiz.answers;
     checkedQuiz.selectedQuestionId = quiz.selectedQuestionId;
+    checkedQuiz.correctTotal = 0;
+    checkedQuiz.incorrectTotal = 0;
+    checkedQuiz.taskDoneTotal = 0;
+
     for (let id = 0; id < quiz.questions.length; id++) {
         const question = quiz.questions[id];
         const answers = quiz.answers[id];
-        checkedQuiz.score += checkAnswerMaps[question.type](question, answers);
+        const pointsToAdd = checkAnswerMaps[question.type](question, answers);
+
+        if (taskDoneCheck[question.type](answers)) {
+            checkedQuiz.taskDoneTotal++
+        }
+
+        if (pointsToAdd > 0) {
+            checkedQuiz.score += pointsToAdd
+            checkedQuiz.correctTotal++
+        } else {
+            checkedQuiz.incorrectTotal++;
+        }
     }
+
     return checkedQuiz;
 }
 
@@ -121,16 +168,31 @@ export function checkQuizzesCompleted(quizzes: RunningQuizzes[]) {
         checkedQuiz.expiredAt = new Date(quiz.expiredAt);
         checkedQuiz.answers = quiz.answers;
         checkedQuiz.selectedQuestionId = quiz.selectedQuestionId;
+        checkedQuiz.correctTotal = 0;
+        checkedQuiz.incorrectTotal = 0;
+        checkedQuiz.taskDoneTotal = 0;
 
         // Calculate the score based on the question and answers
         for (let id = 0; id < quiz.questions.length; id++) {
             const question = quiz.questions[id];
             const answers = quiz.answers[id];
-            checkedQuiz.score += checkAnswerMaps[question.type](question, answers);
+            const pointsToAdd = checkAnswerMaps[question.type](question, answers);
+
+            if (taskDoneCheck[question.type](answers)) {
+                checkedQuiz.taskDoneTotal++
+            }
+    
+            if (pointsToAdd > 0) {
+                checkedQuiz.score += pointsToAdd
+                checkedQuiz.correctTotal++
+            } else {
+                checkedQuiz.incorrectTotal++;
+            }
         }
 
         completedQuizzes.push(checkedQuiz);
     }
 
+    
     return completedQuizzes;
 }
