@@ -335,7 +335,7 @@ export class QuizzesService {
         const initialAnswerData = initialTakeQuizAnswer(data)
         Object.assign(initialAnswerData, { copyof: deployedQuiz._id })
         Object.assign(initialAnswerData, { user: userId })
-        
+
 
         const takeQuiz = await this.runningQuizzesModel.create(initialAnswerData)
         await takeQuiz.populate('copyof', 'name expiredAt')
@@ -496,9 +496,6 @@ export class QuizzesService {
         let summarizedQuizzes = await this.deployedQuizzesModel.find({
             user: userId
         })
-
-        // get participants
-
 
         // get status is done or not ?
 
