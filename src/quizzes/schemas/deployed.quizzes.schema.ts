@@ -82,6 +82,13 @@ export class DeployedQuizzes {
     codeJoin: string
 
     @ApiProperty({
+        description: 'Total of participants',
+        type: Number,
+    })
+    @Prop({required: true, default: 0})
+    participants: number
+
+    @ApiProperty({
         description: 'Expired at',
         type: Date,
         example: '2021-06-05T15:00:00.000Z'

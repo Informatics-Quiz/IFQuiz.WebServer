@@ -16,6 +16,8 @@ import { Response } from 'express';
 import { checkQuizCompleted, checkQuizzesCompleted } from 'src/utils/functions/initial.completed.quiz.utils';
 import { CompletedQuizzes } from './schemas/completed.quizzes.schema';
 import { DeployDataDto } from './dto/deploy.data';
+import { SummarizedQuiz } from './schemas/summarized.quiz.schemas';
+import { clearConfigCache } from 'prettier';
 
 @Injectable()
 export class QuizzesService {
@@ -333,11 +335,16 @@ export class QuizzesService {
         const initialAnswerData = initialTakeQuizAnswer(data)
         Object.assign(initialAnswerData, { copyof: deployedQuiz._id })
         Object.assign(initialAnswerData, { user: userId })
+        
 
         const takeQuiz = await this.runningQuizzesModel.create(initialAnswerData)
         await takeQuiz.populate('copyof', 'name expiredAt')
         const finalQuiz = getTakeQuizWithOutAnswer(takeQuiz)
         this.logger.log(`take quiz: userId[${userId}] query[${JSON.stringify(query)}] response[${JSON.stringify(finalQuiz)}]`)
+
+        deployedQuiz.participants += 1;
+        await deployedQuiz.save();
+        this.logger.log("added participant to deployed quiz successfully total participants: " + deployedQuiz.participants)
         res.status(HttpStatus.OK)
         return res.send(finalQuiz)
     }
@@ -478,5 +485,27 @@ export class QuizzesService {
         //     runValidators: true
         // })
     }
+
+
+    async getSummarizedQuizzes(userId: string): Promise<DeployedQuizzes[]> {
+        if (!mongoose.isValidObjectId(userId)) {
+            this.logger.error(`get summarized quizzes: userId[${userId}] response[Bad Request]`)
+            throw new BadRequestException("Can't pass userId.")
+        }
+
+        let summarizedQuizzes = await this.deployedQuizzesModel.find({
+            user: userId
+        })
+
+        // get participants
+
+
+        // get status is done or not ?
+
+
+
+        return summarizedQuizzes.reverse()
+    }
+
 
 }

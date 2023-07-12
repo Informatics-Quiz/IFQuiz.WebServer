@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiQuery, ApiTags } from '@
 import { UpdateAnswersDto } from './dto/update.answer.dto';
 import { QueryGetAllQuizDto, QueryGetDeployedQuizDto, QueryQuizIdDto } from './dto/global.dto';
 import { DeployDataDto } from './dto/deploy.data';
+import { SummarizedQuiz } from './schemas/summarized.quiz.schemas';
 
 
 @ApiTags('Quizzes')
@@ -113,6 +114,19 @@ export class QuizzesController {
         return this.quizzesService.getRunningQuizzes(req.user._id)
     }
 
+    @Get('/summarized')
+    @UseGuards(AuthGuard())
+    @ApiCreatedResponse({
+        description: "Get Summary Completed Quiz Buy Onwed",
+        type: [DeployedQuizzes]
+    })
+    async getSummarizedQuizzes(
+        @Req()
+        req
+    ): Promise<DeployedQuizzes[]> {
+        return this.quizzesService.getSummarizedQuizzes(req.user._id);
+    }
+
 
     @Get(':id') // get edit quiz by id
     @UseGuards(AuthGuard())
@@ -129,6 +143,8 @@ export class QuizzesController {
         return this.quizzesService.getEditQuiz(id, req.user._id)
     }
 
+
+    
 
     @Post('/take/submit')
     @UseGuards(AuthGuard())
