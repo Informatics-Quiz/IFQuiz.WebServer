@@ -16,8 +16,7 @@ import { Response } from 'express';
 import { checkQuizCompleted, checkQuizzesCompleted } from 'src/utils/functions/initial.completed.quiz.utils';
 import { CompletedQuizzes } from './schemas/completed.quizzes.schema';
 import { DeployDataDto } from './dto/deploy.data';
-import { SummarizedQuiz, SummarizedQuizSchema } from './schemas/summarized.quiz.schemas';
-import { clearConfigCache } from 'prettier';
+import { SummarizedQuizDto } from './dto/summarized.quiz.dto';
 import { initializedStatus } from 'src/utils/functions/initial.summarized.quiz.utils';
 
 @Injectable()
@@ -502,6 +501,32 @@ export class QuizzesService {
         summarizedQuizzes = initializedStatus(summarizedQuizzes)
 
         return summarizedQuizzes.reverse()
+    }
+
+    async getSummarizedQuiz(userId: string, quizId: string): Promise<SummarizedQuizDto> {
+        if (!mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(quizId)) {
+            this.logger.error(`get summarized quiz: userId[${userId}] quizId[${quizId}] response[Bad Request]`)
+            throw new BadRequestException("Can't pass userId or quizId.")
+        }
+
+        const deployedQuiz = await this.deployedQuizzesModel.findOne({
+            user: userId,
+            _id: quizId
+        })
+
+        const summarizedQuiz = new SummarizedQuizDto()
+        summarizedQuiz.name = deployedQuiz.name
+
+        let completedParticipants = await this.completedQuizzesModel.find({
+            copyof: quizId
+        }).populate('user', 'fullname')
+
+
+        console.log(completedParticipants)
+
+
+
+        return null
     }
 
 

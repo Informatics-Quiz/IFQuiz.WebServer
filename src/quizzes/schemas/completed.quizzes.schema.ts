@@ -10,6 +10,12 @@ import { UserFillAnswers, UserMultipleAnswer, UserSingleAnswer } from "../dto/us
 @Schema({timestamps: true, collection: 'quiz_completed', versionKey: false})
 export class CompletedQuizzes {
 
+    // @TODO
+    // validate all answer of completedParticipants
+    // correct total
+    // incorrect total
+    // task done total
+    // points get total
 
     // @Prop({ require: true })
     // name : string

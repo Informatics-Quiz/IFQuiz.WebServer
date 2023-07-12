@@ -15,7 +15,7 @@ import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiQuery, ApiTags } from '@
 import { UpdateAnswersDto } from './dto/update.answer.dto';
 import { QueryGetAllQuizDto, QueryGetDeployedQuizDto, QueryQuizIdDto } from './dto/global.dto';
 import { DeployDataDto } from './dto/deploy.data';
-import { SummarizedQuiz } from './schemas/summarized.quiz.schemas';
+import { SummarizedQuizDto } from './dto/summarized.quiz.dto';
 
 
 @ApiTags('Quizzes')
@@ -125,6 +125,21 @@ export class QuizzesController {
         req
     ): Promise<DeployedQuizzes[]> {
         return this.quizzesService.getSummarizedQuizzes(req.user._id);
+    }
+
+    @Get('/summarized/quiz/:id')
+    @UseGuards(AuthGuard())
+    @ApiCreatedResponse({
+        description: "Get Summary Completed Quiz By Quiz Id",
+        type: [SummarizedQuizDto]
+    })
+    async getSummarizedQuiz(
+        @Req()
+        req,
+        @Param('id')
+        id: string
+    ):Promise<SummarizedQuizDto> {
+        return this.quizzesService.getSummarizedQuiz(req.user._id, id);
     }
 
 
