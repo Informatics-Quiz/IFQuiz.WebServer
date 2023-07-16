@@ -521,12 +521,9 @@ export class QuizzesService {
             copyof: quizId
         }).populate('user', 'fullname email')
 
+        summarizedQuiz.summarizedParticipants = completedParticipants
 
-        console.log(completedParticipants)
-
-
-
-        return null
+        return summarizedQuiz
     }
 
 
