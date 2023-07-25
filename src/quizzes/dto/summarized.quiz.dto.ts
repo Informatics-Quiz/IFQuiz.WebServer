@@ -4,6 +4,7 @@ import { SingleAnswer, MultipleAnswer, FillAnswer } from "./answer.dto";
 import { ApiProperty } from "@nestjs/swagger";
 import { User } from "src/auth/schemas/user.schema";
 import { CompletedQuizzes } from "../schemas/completed.quizzes.schema";
+import { QuestionDto } from "./question.dto";
 
 export class SummarizedQuizDto {
 
@@ -18,5 +19,10 @@ export class SummarizedQuizDto {
         type: [CompletedQuizzes],
     })
     summarizedParticipants: CompletedQuizzes[]
-    
+
+    @ApiProperty({
+        description: 'List of questions',
+        type: [QuestionDto],
+    })
+    questions: QuestionDto[]
 }

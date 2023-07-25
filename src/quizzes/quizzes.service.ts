@@ -509,22 +509,41 @@ export class QuizzesService {
             throw new BadRequestException("Can't pass userId or quizId.")
         }
 
+        const currentTimestamp = new Date();
         const deployedQuiz = await this.deployedQuizzesModel.findOne({
             user: userId,
-            _id: quizId
+            _id: quizId,
+            expiredAt: { $lte: currentTimestamp }
         })
+
+        const runningQuizzes = await this.runningQuizzesModel.find({
+            copyof: quizId,
+            expiredAt: { $lt: currentTimestamp }
+        }).populate('copyof').populate('user')
+
+        if (runningQuizzes.length > 0) {
+            const checkedRunningQuizzes = checkQuizzesCompleted(runningQuizzes);
+            await this.completedQuizzesModel.insertMany(checkedRunningQuizzes);
+
+            // // Extract the IDs of the runningQuizzes to be deleted
+            const runningQuizIds = runningQuizzes.map((quiz) => quiz._id);
+            // // Delete the runningQuizzes documents
+            await this.runningQuizzesModel.deleteMany({ _id: { $in: runningQuizIds } });
+        }
 
         const summarizedQuiz = new SummarizedQuizDto()
         summarizedQuiz.name = deployedQuiz.name
+        summarizedQuiz.questions = deployedQuiz.questions
 
         let completedParticipants = await this.completedQuizzesModel.find({
             copyof: quizId
-        }).populate('user', 'fullname email')
+        }).populate('user', 'fullname email imageUrl')
 
         summarizedQuiz.summarizedParticipants = completedParticipants
 
+        this.logger.log(`get summarized quiz: userId[${userId}] quizId[${quizId}] response[${JSON.stringify(summarizedQuiz)}]`)
         return summarizedQuiz
     }
 
-
+    
 }

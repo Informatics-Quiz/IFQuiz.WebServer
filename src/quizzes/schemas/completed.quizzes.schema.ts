@@ -100,6 +100,14 @@ export class CompletedQuizzes {
     @Prop({required:true, default:0})
     score: number
 
+    @ApiProperty({
+        description: 'Highest correct streak',
+        type: Number,
+        example: 10
+    })
+    @Prop({required:true, default:0})
+    highestCorrectStreak: number
+
 }
 
 export const CompletedQuizzesSchema = SchemaFactory.createForClass(CompletedQuizzes)

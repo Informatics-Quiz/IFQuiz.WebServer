@@ -12,6 +12,7 @@ import {
 	UseGuards,
 	UseInterceptors,
 	Logger,
+	Param,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -113,6 +114,56 @@ export class FileController {
 			res.set({
 				'Content-Type': `image/${fileType}`,
 				'Content-Disposition': `attachment; filename="${req.user.imageUrl}"`,
+			});
+			return new StreamableFile(file);
+		}
+
+		const file = createReadStream(
+			join(process.cwd(), './resources/static-image/profile-image.png'),
+		);
+		res.set({
+			'Content-Type': 'image/png',
+			'Content-Disposition': 'attachment; filename="profile-image.png"',
+		});
+		return new StreamableFile(file);
+	}
+
+	@Get('/get/participants-profile-image/:imageUrl')
+	@UseGuards(AuthGuard())
+	@ApiCreatedResponse({
+		description: 'Get participants profile image',
+		type: StreamableFile,
+	})
+	geParticipantsProfileImage(
+		@Req() req,
+		@Param('imageUrl')
+        imageUrl: string,
+		@Res({ passthrough: true }) res
+	): StreamableFile {
+		this.logger.log(`/get/participants-profile-image/${imageUrl} | from user ${req.user._id}`);
+
+		if (!imageUrl) {
+			const file = createReadStream(
+				join(process.cwd(), './resources/static-image/profile-image.png'),
+			);
+			res.set({
+				'Content-Type': 'image/png',
+				'Content-Disposition': 'attachment; filename="profile-image.png"',
+			});
+			return new StreamableFile(file);
+		}
+
+		const filePath = join(
+			process.cwd(),
+			'./resources/profile-image/',
+			imageUrl,
+		);
+		if (existsSync(filePath)) {
+			const file = createReadStream(filePath);
+			const fileType = imageUrl.match(/\.([^.]+)$/)[1];
+			res.set({
+				'Content-Type': `image/${fileType}`,
+				'Content-Disposition': `attachment; filename="${imageUrl}"`,
 			});
 			return new StreamableFile(file);
 		}

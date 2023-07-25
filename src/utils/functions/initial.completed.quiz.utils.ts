@@ -133,7 +133,9 @@ export function checkQuizCompleted(quiz: RunningQuizzes) {
     checkedQuiz.incorrectTotal = 0;
     checkedQuiz.taskDoneTotal = 0;
     checkedQuiz.isPass = false
-    
+    checkedQuiz.highestCorrectStreak = 0;
+    let currentCorrectStreak = 0;
+
     for (let id = 0; id < quiz.questions.length; id++) {
         const question = quiz.questions[id];
         const answers = quiz.answers[id];
@@ -145,16 +147,19 @@ export function checkQuizCompleted(quiz: RunningQuizzes) {
 
         if (pointsToAdd > 0) {
             checkedQuiz.score += pointsToAdd
-            checkedQuiz.correctTotal++
+            checkedQuiz.correctTotal += 1
+            currentCorrectStreak++;
+            checkedQuiz.highestCorrectStreak = Math.max(checkedQuiz.highestCorrectStreak, currentCorrectStreak); // Update highest correct streak
         } else {
+            currentCorrectStreak = 0;
             checkedQuiz.incorrectTotal++;
         }
     }
 
-    if(checkedQuiz.score > quiz.copyof.points/2) {
+    if (checkedQuiz.score > quiz.copyof.points / 2) {
         checkedQuiz.isPass = true
     }
-    
+
 
     return checkedQuiz;
 }
@@ -178,6 +183,9 @@ export function checkQuizzesCompleted(quizzes: RunningQuizzes[]) {
         checkedQuiz.incorrectTotal = 0;
         checkedQuiz.taskDoneTotal = 0;
         checkedQuiz.isPass = false
+        checkedQuiz.highestCorrectStreak = 0;
+        let currentCorrectStreak = 0;
+    
 
         // Calculate the score based on the question and answers
         for (let id = 0; id < quiz.questions.length; id++) {
@@ -188,22 +196,27 @@ export function checkQuizzesCompleted(quizzes: RunningQuizzes[]) {
             if (taskDoneCheck[question.type](answers)) {
                 checkedQuiz.taskDoneTotal++
             }
-    
+
             if (pointsToAdd > 0) {
+                logger.log(`added points: ${pointsToAdd}`)
                 checkedQuiz.score += pointsToAdd
-                checkedQuiz.correctTotal++
+                checkedQuiz.correctTotal += 1
+                logger.log(`added correctTotal: ${checkedQuiz.correctTotal}`)
+                currentCorrectStreak++;
+                checkedQuiz.highestCorrectStreak = Math.max(checkedQuiz.highestCorrectStreak, currentCorrectStreak); // Update highest correct streak
             } else {
-                checkedQuiz.incorrectTotal++;
+            currentCorrectStreak = 0;
+            checkedQuiz.incorrectTotal++;
             }
         }
 
-        if(checkedQuiz.score > quiz.copyof.points/2) {
+        if (checkedQuiz.score > quiz.copyof.points / 2) {
             checkedQuiz.isPass = true
         }
 
         completedQuizzes.push(checkedQuiz);
     }
 
-    
+
     return completedQuizzes;
 }
